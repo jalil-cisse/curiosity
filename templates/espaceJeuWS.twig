@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+     <script type="text/javascript" src="/static/lib/raphael.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/CSS/jeu.css">
+    <title>Espace Jeu Curiosité</title>
+  </head>
+  <body id="bodydiv">
+        
+        <div id="result">
+            <h1>Liste des joueurs en ligne</h1>
+            <table class="container">
+                <tr>
+                    <th>Joueurs</th>
+                    <th>Score</th>
+                </tr>
+                
+                {% for online in enLigne %}
+                    {% for c in joueur if c['pseudo']==online %}
+                    <tr>
+                        <td>{{ c['pseudo'] }}</td>
+                        <td>
+                            {{ c['scoreActu'] }}
+                            <span>Meilleur: {{ c['meilleurScore'] }}</span>
+                        </td>
+                    </tr>
+                {% endfor %}
+                {% endfor %}
+            </table>
+        </div>
+        
+        <div id="canvaContainer">
+            
+        </div>
+        
+        <br><br>
+        <a href='/logout'>Deconnexion</a><br><br>
+        
+        <script>
+       
+        /*******************************WEBSOCKET****************************************/
+        
+        var page = document.querySelector('#bodydiv');
+        var paper = Raphael(Element, 400, 400);
+        var detruits = [1, 2, 3];
+        //var test = Raphael(100, 100, 1, 1);
+        page.onload=creerCube(detruits, 40);
+       
+        //var ws;
+        
+        var div=document.querySelector('#result table');
+        
+        //Fonction permettant de créer un new noeud
+        function ajoute(parent,balise){
+                    return parent.appendChild(document.createElement(balise));
+        }
+        
+        /************************Initialisation WS au chargement de la page**********************************/
+        //function init(){
+            var ws = new WebSocket('wss://' + window.location.host);
+            console.log('Je suis dans init()');
+            
+        /*******************************Gestion des messages envoyés par le serveur*************************/
+            ws.addEventListener('open', function(e) {
+                ws.addEventListener('message', function(e) {
+                    //chargePage(JSON.parse(e.data));
+                    console.log(e.data);
+                    var data=JSON.parse(e.data);
+                    console.log(data);
+                    console.log(data.statut);
+                    switch(data.statut){
+                        case null:
+                            //code
+                            chargePage(data);
+                        break;
+                        
+                        case 'JOUER':
+                            chargePage(data);
+                            var id1 = data.objet;
+                            console.log("raphaelId debug: " + data.objet);
+                            supprimer(id1, paper);
+                            console.log('JOUER');
+                        break;
+                        default:
+                            // code
+                    }
+                });
+                
+               
+            /**************************Evènement declenché lors du rechargement de la page********************************************/
+                 //check for navigation time API support
+                    /*if (window.performance) {
+                      console.info("window.performance work's fine on this browser");
+                    }
+                    
+                    if (performance.navigation.type == 1) {
+                      console.info( "This page is reloaded" );
+                      var msg={
+                        action: 'actualiserPage'
+                    }
+                    ws.send(JSON.stringify(msg));
+                    } else {
+                      console.info( "This page is not reloaded");
+                    }*/
+                //ws.send('Hi Server!');
+                console.log('Je suis dans init() de l\'evt');
+            });
+        //}
+        
+        /********************************Pour le chargement de la page****************************************/
+        function chargePage(data){
+            var result=data;
+            //console.log('DATA: '+result);
+            //console.log(result[0].login);
+            //console.log(result.length);
+            /* Update du tableau*/
+                div.innerHTML='';
+                function ajoute(parent,balise){
+                    return parent.appendChild(document.createElement(balise));
+                }
+                //table=ajoute(div,'table');
+                //console.log(table);
+                var tr=ajoute(div,'tr');
+                //********************Th Joueurs********************
+                var th=ajoute(tr,'th');
+                th.appendChild(document.createTextNode('Joueurs'));
+                //********************Th Score********************
+                th=ajoute(tr,'th');
+                th.appendChild(document.createTextNode('Score'));
+                //Affichage contenu du data
+                for(var i=0;i<result.infoJoueur.length;i++){
+                    var tr=ajoute(div,'tr');
+                    /**********Insertion Joueur i *************/
+                    var td=ajoute(tr,'td');
+                    var joueur=document.createTextNode(result.infoJoueur[i].pseudo);
+                    td.appendChild(joueur);
+                    /**********Insertion Score*************/
+                    td=ajoute(tr,'td');
+                    var span=ajoute(td,'span');
+                    var betterScore=document.createTextNode('Meilleur: '+result.infoJoueur[i].meilleurScore);
+                    span.appendChild(betterScore);
+                    var score=document.createTextNode(result.infoJoueur[i].scoreActu);
+                    td.appendChild(score);
+                    td.appendChild(span);
+                }
+                /*for (var pseudo in result){
+                    var tr=ajoute(div,'tr');
+                    /**********Insertion Joueur i *************
+                    var td=ajoute(tr,'td');
+                    var joueur=document.createTextNode(result[pseudo]);
+                    td.appendChild(joueur);
+                    /**********Insertion Score*************
+                    td=ajoute(tr,'td');
+                    var span=ajoute(td,'span');
+                    var betterScore=document.createTextNode('Meilleur: '+result[pseudo].meilleurScore);
+                    span.appendChild(betterScore);
+                    var score=document.createTextNode(result[pseudo].scoreActu);
+                    td.appendChild(score);
+                    td.appendChild(span);
+                }*/
+        }
+        
+       
+        
+        /**************************Evènement declenché lors du rechargement de la page********************************************/
+        /*window.addEventListener('load',function(){
+            var msg={
+                action: 'actualiserPage'
+            }
+            ws.send(JSON.stringify(msg));
+        });
+        
+        function ws(){
+                ws.addEventListener('message', function(e) {
+                console.log(e.data);
+                });
+        }*/
+    
+		
+
+var objetParcoordonnes = function(Element, paper){
+    return  paper.getById(Element.id);
+}
+
+/***Creation de cubes*****************/
+/**en paramètres detruits, tableau contenant les id des cubes deja detruits, dimCube : dimension cubes, Element : element dom ou sera rataché le cnavas***/
+function creerCube(detruits, dimCube){
+     var paper = Raphael(Element, 400, 400);
+			/*******definition des variables globales******/
+			var globArreteDim = dimCube;
+			var globTailleCube = 8;
+			var globEspacement = 0.9;
+			var globPostionOffset = globTailleCube + globEspacement;
+            var Element = document.querySelector("#canvaContainer");
+			/**********fin declaration variable globales********/
+
+			/******* creation du canvas avec la bibliothèque RaphaelJS********/
+			
+			
+			/******************fin creation canvas***************************/
+
+			/********pour l'interface jeu********/
+
+			/****************définition de la grille(rectangle) a trois dimensions****************/
+			var rectangle = new Array();
+			for (var i = 0; i < globArreteDim; i++) {
+				rectangle[i] = new Array();
+			}
+
+			for (i = 0; i < globArreteDim; i++) {
+				for (var j = 0; j < globArreteDim; j++) {
+					rectangle[i][j] = new Array();
+				}
+			}
+
+
+			/*************fin grille trois dimensions*****/
+    var paper = 
+    var identifiant=0;
+    var tabID = [];
+			/**********creation des objets rectangle RaphaelJs *******************/
+			for (var k = 0; k < globArreteDim; k++) {
+				for (i = 0; i < globArreteDim; i++) {
+					for (j = 0; j < globArreteDim; j++) {
+						if(!(identifiant in detruits))
+				        paper.rect(i * globPostionOffset, j * globPostionOffset, globTailleCube, globTailleCube, 10);
+					//	rectangle[k][i][j].id = identifiant;
+						this.id=identifiant;
+						
+						this.addEventListener('click',function(){
+						     tabID.push(identifiant);
+						     console.log(tabID);
+						var msg = {
+						    action : 'jouer',
+						    destroyed : tabID
+						};   
+						});
+						identifiant++;
+					}
+				}
+			}
+		};
+		
+		
+		
+function supprimer(id, paper1){
+    var aSupprimer = paper1.getById(id);
+    aSupprimer.remove();
+  }
+
+	</script>
+   
+    </body>
+</html>

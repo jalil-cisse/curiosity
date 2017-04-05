@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Liste des utilisateurs</title>
+    <style>
+        table{
+            border-collapse: collapse;
+        }
+        th, td{    
+            border-right: 1px solid black;  
+            text-align:center;
+            padding-bottom:15px;
+        }    
+        span{    
+            display: inline-block;
+            width:80px;
+            height:25px;
+            margin-left:20px;
+            margin-right:20px;
+        }
+    </style>
+  </head>
+  <body>
+        <h1>Liste des utilisateurs</h1><br>
+        <table>
+            
+            <tr>
+                <th>Pseudo</th>
+                <th>Points</th>
+                <th>MeilleurScore</th>
+                <th>Gagnees</th>
+            </tr>
+            {% for online in enLigne %}
+                {% for c in joueur if c.pseudo==online %}
+                <tr>
+                    <td>{{ c.pseudo }}</td>
+                    <td>{{ c.scoreActu }}</td>
+                    <td>{{ c.meilleurScore }}</td>
+                    <td>{{ c.gagnees }}</td>
+                    <!--<td>{ c['couleur1'] }}</td>-->
+                </tr>
+            {% endfor %}
+          {% endfor %}  
+        </table>
+        <br><br>
+        <a href='/logout'>Deconnexion</a>
+  </body>
+</html>
