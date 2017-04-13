@@ -32,9 +32,11 @@ Afin de permettre la bonne exécution du projet, il est conseiller de :
 * Et enfin executer le fichier *app.js*
 
 ## Ameliorations futures
+* Rendre le projet responsive
 * Integration de la 3D 
 * Jeu multithreader avec des parties simultanées
+* Prise en compte des evenements touchEvent et drag and wheel des ecrans tactils
 
 ## Signaler des bugs 
-* tapsoba.aubain@gmail.com
-* jalilRocket94@gmail.com
+* Cisse Hamidou Abdoul Jalil : jalilrocket94@gmail.com
+* Tapsoba Aubain : tapsoba.aubain@gmail.com
