@@ -1,311 +1,166 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <meta charset="utf-8" />
-     <script type="text/javascript" src="/static/lib/raphael.js"></script>
-    <link rel="stylesheet" type="text/css" href="/static/CSS/jeu.css">
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" src="/static/lib/raphael.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/jeu2.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" >
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P" >
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah">
     <title>Espace Jeu Curiosité</title>
   </head>
+  
   <body id="bodydiv">
-        <div class='decon'>
-            <h2> {{ joueur_actu }} </h2>
+      <!-- popup -->
+        <div id="bodyPopup">
+            <div class="popScroll">
+                <div class="popup">
+                    <span class="ribbon top-left ribbon-primary">
+                        <small>Bravo!</small>
+                    </span> 
+                    <h1>Curiosity Winner</h1>
+                    <p id="win"></p>
+                    <div id="option">
+                        <a href="/espacejeu" id="home" class="boxi">Rejouer</a> 
+                        <em>ou</em>
+                        <a href="/" onclick='curiosity.exit()' id="close" class="boxi closei">Fermer</a>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div id="result">
-            <h1>Liste des joueurs en ligne</h1>
-            <table class="container">
-                <tr>
-                    <th>Joueurs</th>
-                    <th>Score</th>
-                </tr>
-                
-                {#{% for online in enLigne %}#}
-                    {% for c in joueur%}
-                    <tr>
-                        <td>{{ c['pseudo'] }}</td>
-                        <td>
-                            {{ c['scoreActu'] }}
-                            <span>Meilleur: {{ c['meilleurScore'] }}</span>
-                        </td>
-                    </tr>
-                {% endfor %}
-                {#{% endfor %}#}
-            </table>
-        </div>
-        
-        <div id="canvaContainer">
-            
-        </div>
-        
-        <br><br>
-        <a onclick='exit()' href='/logout'>Deconnexion</a><br><br>
-        
-        <script>
-       
-        /*******************************WEBSOCKET****************************************/
-        
-var body = document.querySelector("#bodydiv");
-var paper = Raphael(body, 400, 400);       
-        
-        var div=document.querySelector('#result table');
-        var profondeurGeneral;
-        
-        
-        //Fonction permettant de créer un new noeud
-        function ajoute(parent,balise){
-                    return parent.appendChild(document.createElement(balise));
-        }
-        
-        /************************Initialisation WS au chargement de la page**********************************/
-        //function init(){
-            var ws = new WebSocket('wss://' + window.location.host);
-            console.log('Je suis dans init()');
-            
-        /*******************************Gestion des messages envoyés par le serveur*************************/
-            ws.addEventListener('open', function(e) {
-                ws.addEventListener('message', function(e) {
-                    //chargePage(JSON.parse(e.data));
-                    //console.log(e.data);
-                    var data=JSON.parse(e.data);
-                    console.log(data);
-                    //console.log(data.statut);
-                    switch(data.statut){
-                        case 'newJoueur':
-                            //code
-                            if(data.destroyedSave){
-                                for(var i=0;i<data.destroyedSave.length;i++){
-                                    console.log('DANS FOR:'+data.destroyedSave[i]);
-                                    
-                                    dropeById(data.destroyedSave[i],paper);
-                                }
-                            }
-                            
-                        break;
-                        
-                        case 'ENLIGNE':
-                            //code
-                            chargePage(data);
-                            console.log('ENLIGNE-ChargePage');
-                        break;
-                        
-                        case 'LOGOUT':
-                            //code
-                            chargePage(data);
-                        break;
-                        
-                        case 'JOUER':
-                            //changement du cube courant
-                            dropeById(data.current_objet, paper);
-                            chargePage(data);
-                            console.log('CUURENTOBJET :'+data.current_objet.id);
-                        break;
-                        default:
-                            // code
-                    }
-                });
-                
-               
-            /**************************Evènement declenché lors du rechargement de la page********************************************/
-                 //check for navigation time API support
-                    /*if (window.performance) {
-                      console.info("window.performance work's fine on this browser");
-                    }
-                    
-                    if (performance.navigation.type == 1) {
-                      console.info( "This page is reloaded" );
-                      var msg={
-                        action: 'actualiserPage'
-                    }
-                    ws.send(JSON.stringify(msg));
-                    } else {
-                      console.info( "This page is not reloaded");
-                    }*/
-                //ws.send('Hi Server!');
-                console.log('Je suis dans init() de l\'evt');
-            });
-        //}
-        
-        /********************************Pour le chargement de la page****************************************/
-        function chargePage(data){
-            var result=data;
-            /*************** Tri par ordre croissant du score ***************************/
-            result.infoJoueur.sort(function(a,b){
-                return b.scoreActu - a.scoreActu;
-            });
-            //console.log('DATA: '+result);
-            //console.log(result.infoJoueur[0].scoreActu);
-            //console.log(result.length);
-            /* Update du tableau*/
-                div.innerHTML='';
-                function ajoute(parent,balise){
-                    return parent.appendChild(document.createElement(balise));
-                }
-                //table=ajoute(div,'table');
-                //console.log(table);
-                var tr=ajoute(div,'tr');
-                //********************Th Joueurs********************
-                var th=ajoute(tr,'th');
-                th.appendChild(document.createTextNode('Joueurs'));
-                //********************Th Score********************
-                th=ajoute(tr,'th');
-                th.appendChild(document.createTextNode('Score'));
-                //Affichage contenu du data
-                for(var i=0;i<result.infoJoueur.length;i++){
-                    var tr=ajoute(div,'tr');
-                    /**********Insertion Joueur i *************/
-                    var td=ajoute(tr,'td');
-                    var joueur=document.createTextNode(result.infoJoueur[i].pseudo);
-                    //var joueur=document.createTextNode(result.pseudo);
-                    td.appendChild(joueur);
-                    /**********Insertion Score*************/
-                    td=ajoute(tr,'td');
-                    var span=ajoute(td,'span');
-                    var betterScore=document.createTextNode('Meilleur: '+result.infoJoueur[i].meilleurScore);
-                    //var betterScore=document.createTextNode('Meilleur: '+result.meilleurScore);
-                    span.appendChild(betterScore);
-                    var score=document.createTextNode(result.infoJoueur[i].scoreActu);
-                    //var score=document.createTextNode(result.scoreActu);
-                    td.appendChild(score);
-                    td.appendChild(span);
-                }
-                /*for (var pseudo in result){
-                    var tr=ajoute(div,'tr');
-                    /**********Insertion Joueur i *************
-                    var td=ajoute(tr,'td');
-                    var joueur=document.createTextNode(result[pseudo]);
-                    td.appendChild(joueur);
-                    /**********Insertion Score*************
-                    td=ajoute(tr,'td');
-                    var span=ajoute(td,'span');
-                    var betterScore=document.createTextNode('Meilleur: '+result[pseudo].meilleurScore);
-                    span.appendChild(betterScore);
-                    var score=document.createTextNode(result[pseudo].scoreActu);
-                    td.appendChild(score);
-                    td.appendChild(span);
-                }*/
-        }
-        
-       /****************************Deconnexion**********************************/
-       function exit(){
-           var msg = {
-				    	action : 'exit'
-				    };
-			ws.send(JSON.stringify(msg));
-       }
-        /*var a=document.querySelector('a');
-        a.addEventListener('click',function({
-            var msg = {
-				    	action : 'exit'
-				    }
-			ws.send(JSON.stringify(msg));
-        });*/
-        
-        /**************************Evènement declenché lors du rechargement de la page********************************************/
-        /*window.addEventListener('load',function(){
-            var msg={
-                action: 'actualiserPage'
-            }
-            ws.send(JSON.stringify(msg));
-        });
-        
-        function ws(){
-                ws.addEventListener('message', function(e) {
-                console.log(e.data);
-                });
-        }*/
-    
-////FROM HERE
-
-
-body.onload = creerCube(document.querySelector("#canvaContainer"), 5, paper);
-/***Creation de cubes*****************/
-/**en paramètres detruits, tableau contenant les id des cubes deja detruits, dimCube : dimension cubes, Element : element dom ou sera rataché le cnavas***/
-function creerCube(Element, dimCube, paper1){
+      <!--Fin popup-->
+      
      
-			/*******definition des variables globales******/
-			var globArreteDim = dimCube;
-			var globTailleCube = 30;
-			var globEspacement = 2;
-			var globPostionOffset = globTailleCube + globEspacement;
-            //var Element = document.querySelector("#canvaContainer");
-			/**********fin declaration variable globales********/
-
-			/******* creation du canvas avec la bibliothèque RaphaelJS********/
-			
-			
-			/******************fin creation canvas***************************/
-
-			/********pour l'interface jeu********/
-
-			/****************définition de la grille(rectangle) a trois dimensions****************/
-			var rectangle = new Array();
-			for (var i = 0; i < globArreteDim; i++) {
-				rectangle[i] = new Array();
-			}
-
-			for (i = 0; i < globArreteDim; i++) {
-				for (var j = 0; j < globArreteDim; j++) {
-					rectangle[i][j] = new Array();
-				}
-			}
-
-
-			/*************fin grille trois dimensions*****/
-    var identifiant=0;
-    //var tabID = [];
-			/**********creation des objets rectangle RaphaelJs *******************/
-			
-			for (var k = 0; k < globArreteDim; k++) {
-				for (i = 0; i < globArreteDim; i++) {
-					for (j = 0; j < globArreteDim; j++) {
-				     	rectangle[k][i][j] = paper1.rect(i * globPostionOffset, j * globPostionOffset, globTailleCube, globTailleCube, 1)
-				     	.attr({fill:'rgb('+ k*25 +','+ k*50 +','+ k*90 +')'});
-				     	/*.click(function(){
-				     	    console.log("test");
-				     	});*/
-				     	
-				    	console.log(identifiant);
-				    	
-				    	rectangle[k][i][j].id=identifiant;
-				    	rectangle[k][i][j].node.id = identifiant;
-				    	rectangle[k][i][j].node.profondeur = k;
-				    	console.log(rectangle[k][i][j].id);
-				        console.log(rectangle[k][i][j].node.id);
-				    	identifiant++;
-				    	//rectangle[k][i][j].click= function(evt){
-				    //	rectangle[k][i][j].node.className(identifiant);
-				    	rectangle[k][i][j].node.onclick = function(evt){
-				    	   //  console.log(evt.target.x.baseVal.value);
-				    	     var coordonnes = {
-				    	         x : evt.target.x.baseVal.value,
-				    	         y : evt.target.y.baseVal.value,
-				    	         id : evt.target.id, 
-				    	         profondeurObj : evt.target.profondeur
-				    	     };
-				    	    // console.log("thiiiiii"+ this.className);
-				    	     //tabID.push(coordonnes);
-				    	     //console.log('TABID: '+tabID);
-				    	     //supprimer avec les coordonnées
-				    	     //dropeById(coordonnes, paper);
-				    	     var msg = {
-				    	         action : 'jouer',
-				    	       //  destoyed : tabID, 
-				    	         currentDestroyed : coordonnes
-				    	     };
-				    	     ws.send(JSON.stringify(msg));
-				    	     console.log('COORD: '+coordonnes.id);
-				    	};
-					}
-				}
-			}
-		};
-		
-		function dropeById(coordo, paper1){
-		    var aSupprimer = paper1.getById(coordo.id);
-		    console.log('here :' +aSupprimer);
-		    console.log('objet' + aSupprimer);
-		    aSupprimer.remove();
-		  }
-	</script>
-   
+        
+        <div class="page">
+            <header class="site-header">
+                <div class='JoeurConnecte'>
+                    <h2 id="infosJoueur"> {{ joueur_actu |capitalize }}, le curieux! </h2>
+                    <nav id="menu">
+                        <a href='/profile' target="_blank" title="Modifier mon profil">Mon profil</a>
+                        <a href="#" title="Les dernières nouvelles">Nouveautés</a>
+                        <a href="#achatBonus" id="achatBonus" title="Acheter des bonus">Boutiques</a>
+                        <a href="/logout" onclick='exit()' title="Se deconnecter">Deconnexion</a>
+                    </nav>
+                </div>
+             </header>
+             
+       <div id='espacement'></div>
+       
+       <aside class="left-sidebar">
+          <div id="result">
+                <h1>En ligne</h1>
+                <table class="container">
+                    <tr>
+                        <th>Joueurs</th>
+                        <th>Score</th>
+                    </tr>
+                        {% for c in joueur%}
+                        <tr>
+                            <td>{{ c['pseudo'] }}</td>
+                            <td>
+                                {{ c['scoreActu'] }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+          
+              <button id='mute'>Mute<span class='notification'><i class="fa fa-volume-off" aria-hidden="true"></i></span></button>
+        	<button id='son'>UnMute<span class='notification'><i class="fa fa-volume-up" aria-hidden="true"></i></span></button>
+        </aside>
+      
+      
+        <section class="main-content">
+          
+          <div id="ligne"> <span id="text"></span> <span id="core">{{ scoreJoueur }}</span></div>
+          <span id="canvaContainer"></span> 
+          
+           <div id="timer">
+                <div style="display:none" class="loader-container">
+                    <div class="meter"></div>
+                    <span class="runner"></span>
+                </div>
+            </div>
+          
+              <div id='bonus'>
+                  <button class='buttBonus'>
+                      <span id="bonusGD" class="notification">{{bonusGD}}</span>
+                      <i class="fa fa-hand-rock-o fa-3x" aria-hidden="true"></i>
+                          
+                  </button>
+                  <button class='buttBonus'>
+                      <span id="bonusSudo" class="notification">{{bonusSUDO}}</span>
+                      <i class="fa fa-user-times fa-3x" aria-hidden="true"></i>
+                          
+                  </button>
+              </div>
+      
+         
+        </section>
+      
+        <aside class="right-sidebar">
+            <div id="cubeRightPanel"></div>
+            <div class="box2">
+              <ul class="defile">
+                <li class="item-1">Curiosity</li>
+                <li class="item-2">Come</li>
+                <li class="item-3">Play</li>
+                <li class="item-4">Have Fun</li>
+                <li class="item-5">Discover</li>
+                <li class="item-6">Share</li>
+              </ul>  
+            </div>
+        </aside>
+    
+        <!---debut boutique---->
+        <div class="popup-wrap">
+            <div class="popup-box">
+                <h2>Bienvenue dans la boutique</h2>
+                <div id="pricing-table" class="clear">
+                    <div class="plan">
+                        <h3>Gros Doigt<span>3Opts</span></h3>
+                        <a class="signup" href="#"><span id="achatGD">Payer</span></a>         
+                        <ul>
+                             <li><b>Destruction de plusieurs cubes à chaque clique durant 10s</b></li>
+                        </ul> 
+                    </div>
+                    <div class="plan" id="most-popular">
+                        <h3>Sudo<span>60pts</span></h3>
+                        <a class="signup" href="#"><span id="achatSUDO">Payer</span></a>        
+                        <ul>
+                            <li><b>Stop les autres joueurs durant 30s</b></li>
+                   		</ul>    
+                    </div>
+                    <div class="plan">
+                        <h3>King<span>0.99&euro;</span></h3>
+                		<a class="signup" href="#">Payer</a>
+                        <ul>
+                         	<li><b>Réinitialiser les points d'un concurant à zero</b></li>			
+                        </ul>
+                    </div>
+                    <a class="close-btn popup-close" href="#">X</a>
+                 </div>
+          </div>
+        </div>
+        <!--fin boutique-->
+    
+        <div id='espacement'></div>
+    
+        <footer class="site-footer">
+             <span id="copyright">&copy;Copyright by <a href="www.github.com/jalil">LildJa</a> 	&amp; <a href="wwww.github.com/aubain">Aubhino</a>
+             <br/>AWS-UVSQ 2017</span> 
+        </footer>
+        <audio id='sonArrierePlan' src="/static/sound/bgSound2.mp3" loop autoplay></audio>
+         
+         <script type="text/javascript" src="https://threejs.org/build/three.min.js"></script>
+         <script  type="text/javascript" src="/static/lib/Projector.js"></script>
+         <script type="text/javascript" src="/static/lib/stats.min.js"></script>
+         <script type="text/javascript" src="/static/lib/CanvasRender.js"></script>
+         <script type="text/javascript" src="/static/js/interfaceJeu.js"></script>
     </body>
 </html>

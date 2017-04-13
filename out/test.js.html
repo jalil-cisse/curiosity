@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: test.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: test.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>   /*******************************WEBSOCKET****************************************/
+        
+    var body = document.querySelector("#bodydiv");
+ /**
+ * Ici initialisation de Raphael et creation d'un canvas.
+ * @Raphael
+ * @param {element} body - l'element auquel sera rattaché le canvas
+ * @param {int}  largeur - largeur du canvas.
+ * @param {int} longueur - longueur du canvas.
+ */
+ var paper = Raphael(body, 400, 400); //canvas associé  
+ 
+ /**
+ * Variable globale contenant les ID des cubes non supprimés.
+ * @var {number[]} tabID
+ */
+ var tabId = [];
+ 
+ /**
+ * Contient true si bonus et false sinon.
+ * @var {bool} bonGD
+ */
+ var bonGD = false;
+ var nbClic=0;
+ 
+  /**
+ * Contient la profondeur courante des cubes qu'on peut supprimer.
+ * @var {number} profondeurGeneral
+ */
+ var profondeurGeneral;   
+ 
+var div=document.querySelector('#result table');
+  
+/** Fonction permettant de créer un nouveau noeud
+ * @param {element} parent element parent.
+ * @param {element} balise element a accrocher au parent.
+*/
+function ajoute(parent,balise){
+        return parent.appendChild(document.createElement(balise));
+    }
+        
+/**
+@var ws {instanceWebsocket} Instance du websocket.
+*/
+var ws = new WebSocket('wss://' + window.location.host);
+    
+    //handler associé à l'ouverture du websocket avec le serveur  
+    ws.addEventListener('open', function(e) {
+        ws.addEventListener('message', function(e) {
+            /**
+             * @param data {Object} message recu du serveur
+             */
+            var data=JSON.parse(e.data);
+        
+        //    console.log(data);
+            switch(data.statut){
+                    case 'newJoueur':
+                            if(data.destroyedSave){
+                                for(var i=0;i&lt;data.destroyedSave.length;i++){
+                                    console.log('DANS FOR:'+data.destroyedSave[i]);
+                                    dropeById(data.destroyedSave[i],paper);
+                                }
+                            }
+                            
+                        break;
+                        
+                        case 'ENLIGNE':
+                            chargePage(data);
+                            console.log('ENLIGNE-ChargePage');
+                        break;
+                        
+                        case 'LOGOUT':
+                            //code
+                            chargePage(data);
+                        break;
+                        
+                        case 'JOUER':
+                            console.log(bonGD);
+                           //changement du cube courant
+                            tabId.splice(indice(data.current_objet), 1);
+                            dropeById(data.current_objet, paper);
+                            chargePage(data);
+                            console.log('longueur tableau' +tabId.length);
+                            //console.log('INDEX: '+tabId.indexOf(parseInt(data.current_objet.id, 10))+' ID: '+data.current_objet.id;
+                            //console.log('CUURENTOBJET :'+data.current_objet.id + 'TabID :'+tabId);
+                            if(bonGD &amp;&amp; nbClic>0){
+                                console.log('BONNUS-GD');
+                            var i=tabId.length-1;
+                            var msg = {
+                                action: 'jouer',
+                                currentDestroyed: tabId[i]
+                            };
+                            ws.send(JSON.stringify(msg));
+                            nbClic--;
+                            if(nbClic==0)
+                                bonGD = false;
+                                
+                            }
+                            break;
+                        case 'WIN' : 
+                            console.log('Message Win bien reçu');
+                            break;
+                         case 'CONFGD' : 
+                            bonGD = true;
+                            nbClic = 3;
+                            console.log('BONNUS: '+bonGD+' '+nbClic+' Clic');
+                             break;
+                        default:
+                            // code
+                    }
+                });
+     });
+    
+                /** @function indice
+                 * @param objet 
+                Pour chercher l'indice d'un tableau
+                */
+        function indice(objet){
+            for(var i=0;i&lt;tabId.length;i++){
+                if(tabId[i].id==objet.id)
+                return i;
+            }
+        }
+        
+        /********************************Pour le chargement de la page****************************************/
+        function chargePage(data){
+            var result=data;
+            /*************** Tri par ordre croissant du score ***************************/
+            result.infoJoueur.sort(function(a,b){
+                return b.scoreActu - a.scoreActu;
+            });
+            //console.log('DATA: '+result);
+            //console.log(result.infoJoueur[0].scoreActu);
+            //console.log(result.length);
+            /* Update du tableau*/
+                div.innerHTML='';
+                function ajoute(parent,balise){
+                    return parent.appendChild(document.createElement(balise));
+                }
+                //table=ajoute(div,'table');
+                //console.log(table);
+                var tr=ajoute(div,'tr');
+                //********************Th Joueurs********************
+                var th=ajoute(tr,'th');
+                th.appendChild(document.createTextNode('Joueurs'));
+                //********************Th Score********************
+                th=ajoute(tr,'th');
+                th.appendChild(document.createTextNode('Score'));
+                //Affichage contenu du data
+                for(var i=0;i&lt;result.infoJoueur.length;i++){
+                    var tr=ajoute(div,'tr');
+                    /**********Insertion Joueur i *************/
+                    var td=ajoute(tr,'td');
+                    var joueur=document.createTextNode(result.infoJoueur[i].pseudo);
+                    //var joueur=document.createTextNode(result.pseudo);
+                    td.appendChild(joueur);
+                    /**********Insertion Score*************/
+                    td=ajoute(tr,'td');
+                    var score=document.createTextNode(result.infoJoueur[i].scoreActu);
+                    //var score=document.createTextNode(result.scoreActu);
+                    td.appendChild(score);
+                }
+                /*for (var pseudo in result){
+                    var tr=ajoute(div,'tr');
+                    /**********Insertion Joueur i *************
+                    var td=ajoute(tr,'td');
+                    var joueur=document.createTextNode(result[pseudo]);
+                    td.appendChild(joueur);
+                    /**********Insertion Score*************
+                    td=ajoute(tr,'td');
+                    var span=ajoute(td,'span');
+                    var betterScore=document.createTextNode('Meilleur: '+result[pseudo].meilleurScore);
+                    span.appendChild(betterScore);
+                    var score=document.createTextNode(result[pseudo].scoreActu);
+                    td.appendChild(score);
+                    td.appendChild(span);
+                }*/
+        }
+        
+       /****************************Deconnexion**********************************/
+       function exit(){
+           var msg = {
+				    	action : 'exit'
+				    };
+			ws.send(JSON.stringify(msg));
+       }
+        /*var a=document.querySelector('a');
+        a.addEventListener('click',function({
+            var msg = {
+				    	action : 'exit'
+				    }
+			ws.send(JSON.stringify(msg));
+        });*/
+        
+        /**************************Evènement declenché lors du rechargement de la page********************************************/
+        /*window.addEventListener('load',function(){
+            var msg={
+                action: 'actualiserPage'
+            }
+            ws.send(JSON.stringify(msg));
+        });
+        
+        function ws(){
+                ws.addEventListener('message', function(e) {
+                console.log(e.data);
+                });
+        }*/
+    
+////FROM HERE
+
+
+body.onload = creerCube(document.querySelector("#canvaContainer"), 5, paper);
+/***Creation de cubes*****************/
+/**en paramètres detruits, tableau contenant les id des cubes deja detruits, dimCube : dimension cubes, Element : element dom ou sera rataché le cnavas***/
+function creerCube(Element, dimCube, paper1){
+     
+			/*******definition des variables globales******/
+			var globArreteDim = dimCube;
+			var globTailleCube = 30;
+			var globEspacement = 2;
+			var globPostionOffset = globTailleCube + globEspacement;
+            //var Element = document.querySelector("#canvaContainer");
+			/**********fin declaration variable globales********/
+
+			/******* creation du canvas avec la bibliothèque RaphaelJS********/
+			
+			
+			/******************fin creation canvas***************************/
+
+			/********pour l'interface jeu********/
+
+			/****************définition de la grille(rectangle) a trois dimensions****************/
+			var rectangle = new Array();
+			for (var i = 0; i &lt; globArreteDim; i++) {
+				rectangle[i] = new Array();
+			}
+
+			for (i = 0; i &lt; globArreteDim; i++) {
+				for (var j = 0; j &lt; globArreteDim; j++) {
+					rectangle[i][j] = new Array();
+				}
+			}
+
+
+			/*************fin grille trois dimensions*****/
+    var identifiant=0;
+    //var tabID = [];
+			/**********creation des objets rectangle RaphaelJs *******************/
+			
+			for (var k = 0; k &lt; globArreteDim; k++) {
+				for (i = 0; i &lt; globArreteDim; i++) {
+					for (j = 0; j &lt; globArreteDim; j++) {
+				     	rectangle[k][i][j] = paper1.rect(i * globPostionOffset, j * globPostionOffset, globTailleCube, globTailleCube, 1)
+				     	.attr({fill:'rgb('+ k*25 +','+ k*50 +','+ k*90 +')'});
+				     	/*.click(function(){
+				     	    console.log("test");
+				     	});*/
+				     	
+				    	console.log(identifiant);
+				    	
+				    	rectangle[k][i][j].id=identifiant;
+				    	rectangle[k][i][j].node.id = identifiant;
+				    	rectangle[k][i][j].node.profondeur = k;
+				    	console.log(rectangle[k][i][j].id);
+				        console.log(rectangle[k][i][j].node.id);
+				        //tabId.push(identifiant);
+				        tabId.push({
+				            id : identifiant,
+				            profondeurObj : k
+				        });
+				    	identifiant++;
+				    	//rectangle[k][i][j].click= function(evt){
+				    //	rectangle[k][i][j].node.className(identifiant);
+				    	rectangle[k][i][j].node.onclick = function(evt){
+				    	   //  console.log(evt.target.x.baseVal.value);
+				    	     var coordonnes = {
+				    	         x : evt.target.x.baseVal.value,
+				    	         y : evt.target.y.baseVal.value,
+				    	         id : evt.target.id, 
+				    	         profondeurObj : evt.target.profondeur
+				    	     };
+				    	    // console.log("thiiiiii"+ this.className);
+				    	     //tabID.push(coordonnes);
+				    	     //console.log('TABID: '+tabID);
+				    	     //supprimer avec les coordonnées
+				    	     //dropeById(coordonnes, paper);
+				    	     var msg = {
+				    	         action : 'jouer',
+				    	       //  destoyed : tabID, 
+				    	         currentDestroyed : coordonnes
+				    	     };
+				    	     ws.send(JSON.stringify(msg));
+				    	     console.log('COORD: '+coordonnes.id);
+				    	};
+					}
+				}
+			}
+		};
+		
+		function dropeById(coordo, paper1){
+		    var aSupprimer = paper1.getById(coordo.id);
+		    console.log('here :' +aSupprimer);
+		    console.log('objet' + aSupprimer);
+		    aSupprimer.remove();
+		  }
+		  
+		var butBonusGrosDoigt = document.querySelectorAll('.buttBonus')[0];
+		butBonusGrosDoigt.addEventListener('click', (evt)=>{
+		    ws.send(JSON.stringify({
+		        action : 'bonusGD'
+		    }));
+		});
+		
+		var butBonusSudo = document.querySelectorAll('.buttBonus')[1];
+		butBonusSudo.addEventListener('click', (evt)=>{
+		    ws.send(JSON.stringify({
+		        action : 'bonusSUDO'
+		    }));
+		});</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ajoute">ajoute</a></li><li><a href="global.html#bonGD">bonGD</a></li><li><a href="global.html#creerCube">creerCube</a></li><li><a href="global.html#indice">indice</a></li><li><a href="global.html#paper">paper</a></li><li><a href="global.html#profondeurGeneral">profondeurGeneral</a></li><li><a href="global.html#tabID">tabID</a></li><li><a href="global.html#ws">ws</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Apr 07 2017 09:00:04 GMT+0000 (UTC)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

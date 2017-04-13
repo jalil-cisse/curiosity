@@ -1,0 +1,254 @@
+/** Inspiré de Sign-Up/Login Form de Eric sur code pen***/
+
+*,
+*:before,
+*:after {
+    box-sizing: border-box;
+}
+
+body {
+    background: url(image/background.png) no-repeat center center fixed;
+    -webkit-background-size: cover;
+    -moz-background-size: cover;
+    -o-background-size: cover;
+    background-size: cover;
+    font-family: 'Titillium Web', sans-serif;
+}
+
+.logo-container {
+    text-align: center;
+    margin-top: -50px;
+    background: rgba(25, 25, 25, 0.3);
+    width: 100%;
+}
+
+
+/*Pour agrandir la taille des caractères*/
+
+.logo {
+    font-size: 3rem;
+}
+
+
+/*Pour la coloration et la police de h1*/
+
+.logo > h1 {
+    font-family: 'Poiret One';
+    font-weight: bold;
+    color: rgba(255, 255, 255, 0.85);
+    /*couleur blanc*/
+    cursor: pointer;
+}
+
+
+/*Pour la coloration de Kain*/
+
+.texBleu {
+    color: white;
+    font-family: 'Indie Flower', cursive;
+    letter-spacing: -0.05em;
+    font-weight: lighter;
+    font-size: 1.2em;
+}
+
+.texBlanc {
+    font-family: 'Abel', sans-serif;
+    letter-spacing: -0.1em;
+    font-weight: lighter;
+    font-size: 1.2em;
+    color: #0AD5E3;
+}
+
+.form a {
+    text-decoration: none;
+    color: #1ab188;
+    transition: .5s ease;
+}
+
+.form a:hover {
+    color: #179b77;
+}
+
+.form {
+    background: rgba(25, 25, 25, 0.9);
+    padding: 40px;
+    width: 100%;
+    max-width: 600px;
+    margin: 40px auto;
+    border-radius: 4px;
+    box-shadow: 0 4px 10px 4px rgba(22, 22, 22, 0.5);
+    overflow: hidden;
+}
+
+.tab-group {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 40px 0;
+}
+
+.tab-group:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.tab-group li a {
+    display: block;
+    text-decoration: none;
+    padding: 15px;
+    background: rgba(160, 179, 176, 0.25);
+    color: #a0b3b0;
+    ;
+    font-size: 20px;
+    float: left;
+    width: 50%;
+    text-align: center;
+    cursor: pointer;
+    transition: .5s ease;
+}
+
+.tab-group li a:hover {
+    background: #179b77;
+    color: #ffffff;
+}
+
+.tab-group .active a {
+    background: #1ab188;
+    color: #ffffff;
+}
+
+.tab-content>div:nth-child(2) {
+    display: none;
+}
+
+.tab-content>div:last-child {
+    display: none;
+}
+
+h2 {
+    text-align: center;
+    color: #ffffff;
+    font-weight: 300;
+    font-size: 2.0em;
+    margin: 0 0 40px;
+}
+
+label {
+    position: relative;
+    transform: translate(5px, calc(100% + 10px)) scale(1);
+    display: block;
+    color: rgba(255, 255, 255, 0.5);
+    z-index: 1;
+    transform-origin: bottom left;
+    left: 0;
+    transition: color 200ms ease-in-out, transform 200ms ease-in-out, font-size 200ms ease-in-out;
+}
+
+label .req {
+    margin: 2px;
+    color: #1ab188;
+}
+
+label.active {
+    transform: translate(0, 0) scale(0.9);
+}
+
+label.active .req {
+    opacity: 0;
+}
+
+label.active-color {
+    color: #1ab188;
+}
+
+.field-wrap {
+    position: relative;
+    margin-bottom: 40px;
+    width: 90%;
+    margin: 25px auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.field-wrap>input {
+    font-size: 22px;
+    border: 0;
+    outline: 0;
+    padding: 10px 5px;
+    position: relative;
+    background-color: transparent;
+    width: 100%;
+    z-index: 2;
+    font-family: roboto;
+    color: #ffffff;
+}
+
+.field-wrap::before {
+    position: absolute;
+    content: '';
+    height: 1px;
+    background-color: rgba(0, 0, 0, 0.26);
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    transition: background-color 200ms ease-in-out;
+}
+
+.field-wrap:first-child {
+    margin-top: 0;
+}
+
+.focused::before {
+    background-color: #1ab188;
+}
+
+.submitClick {
+    width: 260px;
+    height: 70px;
+    cursor: pointer;
+    margin: 0 auto;
+    border: 2px solid rgb(30, 205, 151);
+    -webkit-border-radius: 40px;
+    border-radius: 40px;
+    font-size: 2rem;
+    font-weight: 600;
+    color: #ffffff;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    background: rgba(0, 0, 0, 0);
+    -webkit-transition: background-color 0.3s cubic-bezier(0, 0, 0, 0), color 0.3s cubic-bezier(0, 0, 0, 0), width 0.3s cubic-bezier(0, 0, 0, 0), border-width 0.3s cubic-bezier(0, 0, 0, 0), border-color 0.3s cubic-bezier(0, 0, 0, 0);
+    -moz-transition: background-color 0.3s cubic-bezier(0, 0, 0, 0), color 0.3s cubic-bezier(0, 0, 0, 0), width 0.3s cubic-bezier(0, 0, 0, 0), border-width 0.3s cubic-bezier(0, 0, 0, 0), border-color 0.3s cubic-bezier(0, 0, 0, 0);
+    -o-transition: background-color 0.3s cubic-bezier(0, 0, 0, 0), color 0.3s cubic-bezier(0, 0, 0, 0), width 0.3s cubic-bezier(0, 0, 0, 0), border-width 0.3s cubic-bezier(0, 0, 0, 0), border-color 0.3s cubic-bezier(0, 0, 0, 0);
+    transition: background-color 0.3s cubic-bezier(0, 0, 0, 0), color 0.3s cubic-bezier(0, 0, 0, 0), width 0.3s cubic-bezier(0, 0, 0, 0), border-width 0.3s cubic-bezier(0, 0, 0, 0), border-color 0.3s cubic-bezier(0, 0, 0, 0);
+    margin-left: 130px;
+}
+
+.submitClick:hover {
+    color: rgba(255, 255, 255, 1);
+    background: rgb(30, 205, 151);
+}
+
+.submitClick:active {
+    border: 2px solid rgba(33, 224, 163, 1);
+    background: rgba(33, 224, 163, 1);
+    -webkit-transition: none;
+    -moz-transition: none;
+    -o-transition: none;
+    transition: none;
+}
+
+.error{
+    border: 3px solid rgba(20,183,183,1);
+    color: white;
+    opacity: 1;
+    border-radius: 5px;
+    margin-left: 20px;
+}
+
+.forgot {
+    margin-top: -20px;
+    text-align: right;
+}

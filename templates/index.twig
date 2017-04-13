@@ -1,59 +1,181 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <link rel="stylesheet" type="text/css"  href="https://fonts.googleapis.com/css?family=Abel|Indie+Flower">
-        <link rel="stylesheet" type="text/css" href="static/CSS/index.css">
-        <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
-        <title>Curiosity</title>
-    </head>
-    <body>
-        <div id='container'>
-            <div data-component="Login" class="">
-                <!--Pour le texte KainCall-->
-                <div class="logo-container">
-                    <div class='logo'>
-                        <h1>
-                            <span class='texBleu'><span class="k">J</span>eU</span> <span class='texBlanc'>Curiosity</span>
-                        </h1>
-                    </div>
-                </div>
-                <!--Formulaire-->
-                <form method="post" action="">
-                   <span class='iconParam'>
-                          <a href=#><i class='fa fa-cog fa-fw'></i></a>
-                        <!--<svg class="icon" viewBox="0 0 24 24"></svg>-->
-                    </span>
-                  <div class='form-container'>
-                       
-                        <div class="form-group">
-                            <input id="votreNom" value="" type="text" name="nom_joueur" required/>
-                            <label class="control-label" for="votreNom">Pseudo</label>
-                            <i class="bar"></i><br>
-                            <input id="votrePwd" value="" type="password" name="pwd" required/>
-                            <label class="control-labelP control-label" for="votrePwd">Mot de passe</label>
-                            <i class="barP"></i>
-                        </div>
-                        {% if duplica %}
-                            <div class='errDiv'>
-                                <p>
-                                    <span>Ce pseudo ou mot de passe existent déjà</span><br/>
-                                    <span>Veuillez en choisir un autre</span>
-                                </p>
-                            </div>
-                        {% endif %}
-                        <button  tabindex="0" type="button">
-                            <span class='bouton'>Reset</span>
-                        </button>
-                  </div>
-                  <div class="loginClick">
-                       <button class='submit-bouton' type="submit" value=""></button>
-                <!--div pour l'envoi du username-->
-                  </div>
-                </form>
-                
-            </div>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Curiosity | Join and discover what is inside the cube!</title>
+    <link rel="icon" type="image/png" href="/static/css/image/favicon.png" />
+    <link rel="stylesheet" href="/static/css/index.css">
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Abel|Indie+Flower">
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+</head>
+
+<body>
+    
+     <!-------Inspiré de Sign-Up/Login de Eric sur code pen------>
+    <div class="logo-container">
+        <div class='logo'>
+            <h1>
+                <span class='texBleu'><span class="k">J</span>eU</span> <span class='texBlanc'>Curiosity</span>
+            </h1>
         </div>
-      <!--<script type="text/javascript" src="JS/index.js"></script>-->
-      </body>
+    </div>
+
+    <div class="form">
+
+        <ul class="tab-group">
+            <li class="tab active"><a href="#login">Log In</a></li>
+            <li class="tab"><a href="#signup">Sign Up</a></li>
+        </ul>
+
+        <div class="tab-content">
+            <!-------------------Début formulaire de login---------------------->
+            <div id="login">
+                <h2>Welcome Back!</h2>
+
+                <form action="/login" method="post">
+
+                    <div class="field-wrap">
+                        <label>
+                          Pseudo<span class="req">*</span>
+                        </label>
+                        <input type="text" name="nom_joueur" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                          Password<span class="req">*</span>
+                        </label>
+                        <input type="password" name="pwd" required autocomplete="off" />
+                    </div>
+                    {% if erreurCompt %}
+                    <span class='error'>Vous n'avez pas de compte. Créez en d'abord!</span>
+                    {% endif %}
+                    {% if erreurPwd %}
+                    <span class='error'>Erreur sur le Pseudo ou Password!</span>
+                    {% endif %}
+                    <p class="forgot tab"><a href="#forget">Forgot Password?</a></p>
+
+                    <button class="submitClick" type="submit">Let Start</button>
+                </form>
+
+            </div>
+            
+            <!-------------------Début formulaire de signin---------------------->
+            <div id="signup">
+                <h2>Sign Up</h2>
+
+                <form action="/signin" method="post" id="verifForm">
+
+                    <div class="field-wrap">
+                        <label>
+                            First Name<span class="req">*</span>
+                          </label>
+                        <input type="text" name="nom" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                            Last Name<span class="req">*</span>
+                        </label>
+                        <input type="text" name="prenom" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                          Pseudo<span class="req">*</span>
+                        </label>
+                        <input type="text" name="pseudo" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                          Email Address<span class="req">*</span>
+                        </label>
+                        <input type="email" name="email" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                          Password<span class="req">*</span>
+                        </label>
+                        <input type="password" name="pass1" id="verifPass1" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                          Confirm password<span class="req">*</span>
+                        </label>
+                        <input type="password" name="pass2" id="verifPass2" required autocomplete="off" />
+                    </div>
+                    <div class="field-wrap">
+                        <label>
+                         Resultat Opération <span id='operande1' style='color:white;'></span>
+                         <span id='operande2' style='color:white;'>+</span>
+                         <span class="req">*</span>
+                        </label>
+                        <input type="text" name="capcha" id="result" required autocomplete="off" />
+                    </div>
+                    {% if duplica %}
+                    <span class='error'>Ce pseudo existe déjà!</span>
+                    {% endif %}
+                    <button class="submitClick" type="submit">Submit</button>
+
+
+                </form>
+
+            </div>
+            
+            <!-------------------Début formulaire de mot de passe oublié------------------->
+
+            <div id="forget">
+                <h2>Change Password!</h2>
+
+                <form action="/forgetPass" method="post" id="verifFormForget">
+
+                    <div class="field-wrap">
+                        <label>
+                            First Name<span class="req">*</span>
+                          </label>
+                        <input type="text" name="fname" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                            Last Name<span class="req">*</span>
+                        </label>
+                        <input type="text" name="lname" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                          New Password<span class="req">*</span>
+                        </label>
+                        <input type="password" name="newPass" id="verifNewPass" required autocomplete="off" />
+                    </div>
+
+                    <div class="field-wrap">
+                        <label>
+                          Confirm New Password<span class="req">*</span>
+                        </label>
+                        <input type="password" name="confPass" id="verifConfPass" required autocomplete="off" />
+                    </div>
+                    {% if errPseudo %}
+                    <span class='error'>Erreur sur le nom ou le prenom!</span>
+                    {% endif %}
+                    <button class="submitClick" type="submit">Submit</button>
+                </form>
+
+            </div>
+
+        </div>
+        <!-- tab-content -->
+
+    </div>
+    <!-- /form -->
+    <script type="text/javascript" src="/static/js/index.js"></script>
+    <footer></footer>
+</body>
+
 </html>
