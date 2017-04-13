@@ -2,18 +2,18 @@
 
 ## Description
 Jeu multijoueurs consistant en la destruction d'un grand cube constitué lui même de petits cubes. Afin de faire une demonstration de toutes les étapes du jeu,
-la taille du cube a été reduit du cube general a été reduite a 5,5,5.
+la taille du cube general a été reduite à 5,5,5.
 
 Le but du jeu est d'être le premier à atteindre la fin du cube.
 
 
 ## Frameworks utilisés  
 
-* Node,  
-* Jquery,
-* Raphael,  
-* ThreeJs.
-* JsDoc
+* __Node__  
+* __Jquery__
+* __Raphael__  
+* __ThreeJs__
+* __JsDoc__
 
 ## Ressources utilisées
 
@@ -27,15 +27,15 @@ La documentation officielle du code source du projet est accesible depuis ce lie
 ## Lancement de l'application
 Afin de permettre la bonne exécution du projet, il est conseiller de :
 
-* Après avoir cloner ce depot,
-* Executer le script *mongod* qui se trouve sur le repertoire racine /, 
+* Après avoir cloner ce depot
+* Exécuter le script *mongod* qui se trouve sur le repertoire racine "/" 
 * Et enfin executer le fichier *app.js*
 
 ## Ameliorations futures
 * Rendre le projet responsive
-* Integration de la 3D 
+* Intégration de la 3D 
 * Jeu multithreader avec des parties simultanées
-* Prise en compte des evenements touchEvent et drag and wheel des ecrans tactils
+* Prise en compte des évènements touchEvent et drag and wheel des écrans tactiles
 
 ## Signaler des bugs 
 * Cisse Hamidou Abdoul Jalil : jalilrocket94@gmail.com
