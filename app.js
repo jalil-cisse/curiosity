@@ -54,14 +54,6 @@ var mongoose = require('mongoose');
 /**********moteur de templating Twig**********/
 var twig = require('twig');
 
-/********* Cluster ***********/
-/*var cluster= require('cluster');
-var numCPUs= require('os').cpus().length;
-cluster.setupMaster({
-  exec: 'worker.js',
-  args: ['--use', 'https'],
-  silent: true
-});*/
 
 /****************************************************************************/
 
@@ -132,186 +124,184 @@ db.once('open', () => {
 /** Gestionnaire pour la direction vers l'authentification
  */
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/static/index.html');
+    //res.sendFile(__dirname + '/static/index.html');
+    res.render('index.twig');
 });
 
 
 /**Gestionnaire pour l'authentification du joueur
  */
-app.post('/login', (req, res) => {
-
-    //Requête preparée permettant de chercher le pseudo saisi dans la BD
-    var query = Joueur.find({
-        pseudo: req.body.nom_joueur
-    });
-
-    //Exécution de la requête
-    query.exec((err, result) => {
-        if (err) {
-            console.log('\n Erreur sur find: ' + err);
-            res.status(500).send(err);
-        }
-        if (result.length >= 1) {
-            
-            //Verification du mot de passe Hasher
-            bcrypt.compare(req.body.pwd, result[0].pass, (err, resVerif) => {
-
-                if (resVerif) {
-                    //Stockage session du nouveau joueur et redirection vers /espacejeu
-                    req.session.pseudo = req.body.nom_joueur;
-
-                    //Mise à jour de l'objet connectes
-                    connectes[req.body.nom_joueur] = {
-                        time: new Date(),
-                        statut: null,
-                        scoreActu: result[0].scoreActu,
-                        grosDoigt: result[0].bonnus.grosDoigt,
-                        sudo: result[0].bonnus.sudo
-                    };
-                    res.redirect('/espacejeu');
-                }
-                else {
-                    console.log('MDP incorect');
-                    res.render('index.twig', {
-                        'erreurPwd': true
-                    });
-                }
-            });
-        }
-        else {
-            console.log('Pseudo non reconnu');
-            res.render('index.twig', {
-                'erreurCompt': true
-            });
-        }
-    });
+app.all('/login', (req, res) => {
+    
+    if(req.method=='POST'){
+        //Requête preparée permettant de chercher le pseudo saisi dans la BD
+        var query = Joueur.find({
+            pseudo: req.body.nom_joueur
+        });
+    
+        //Exécution de la requête
+        query.exec((err, result) => {
+            if (err) {
+                console.log('\n Erreur sur find: ' + err);
+                res.status(500).send(err);
+            }
+            if (result.length >= 1) {
+                
+                //Verification du mot de passe Hasher
+                bcrypt.compare(req.body.pwd, result[0].pass, (err, resVerif) => {
+    
+                    if (resVerif) {
+                        //Stockage session du nouveau joueur et redirection vers /espacejeu
+                        req.session.pseudo = req.body.nom_joueur;
+    
+                        //Mise à jour de l'objet connectes
+                        connectes[req.body.nom_joueur] = {
+                            time: new Date(),
+                            statut: null,
+                            scoreActu: result[0].scoreActu,
+                            grosDoigt: result[0].bonnus.grosDoigt,
+                            sudo: result[0].bonnus.sudo
+                        };
+                        res.redirect('/espacejeu');
+                    }
+                    else {
+                        console.log('MDP incorect');
+                        res.render('index.twig', {
+                            'erreurPwd': true
+                        });
+                    }
+                });
+            }
+            else {
+                console.log('Pseudo non reconnu');
+                res.render('index.twig', {
+                    'erreurCompt': true
+                });
+            }
+        });
+    }else{
+        res.redirect('/');
+    }
 });
 
-/**Gestionnaire pour éviter l'erreur: "cannot get /login"
- */
-app.get('/login', (req, res) => {
-    res.redirect('/');
-});
 
 /**Gestionnaire pour la création de compte du joueur
  */
-app.post('/signin', (req, res) => {
+app.all('/signin', (req, res) => {
 
-    var query = Joueur.find({
-        pseudo: req.body.pseudo
-    });
-    //Vérification s'il n'y a pas le même Pseudo avant de l'enregistrer
-    query.exec((err, result) => {
-        if (err) {
-            console.log('\n Erreur sur find: ' + err);
-            res.status(500).send(err);
-        }
-        /**Si le pseudo existe on réaffiche la page d'authentification avec un
-         *message spécifiant que le Pseudo ou le mot de passe existe déjà
-         */
-        else if (result.length >= 1) {
-            res.render('index.twig', {
-                'duplica': true
-            });
-
-        }
-        //Il n'existe pas, donc on l'ajoute dans la BD avant de le rediriger
-        else {
-            //Pour hacher le MDP
-            bcrypt.hash(req.body.pass2, saltRounds, (err, hash) => {
-                //Insertion du nouveau joueur dans la BD
-                var nouvJoueur = new Joueur({
-                    nom: req.body.nom,
-                    prenom: req.body.prenom,
-                    pseudo: req.body.pseudo,
-                    email: req.body.email,
-                    pass: hash,
-                    scoreActu: 0,
-                    bonnus: {
+    if(req.method=='POST'){
+        var query = Joueur.find({
+            pseudo: req.body.pseudo
+        });
+        //Vérification s'il n'y a pas le même Pseudo avant de l'enregistrer
+        query.exec((err, result) => {
+            if (err) {
+                console.log('\n Erreur sur find: ' + err);
+                res.status(500).send(err);
+            }
+            /**Si le pseudo existe on réaffiche la page d'authentification avec un
+             *message spécifiant que le Pseudo ou le mot de passe existe déjà
+             */
+            else if (result.length >= 1) {
+                res.render('index.twig', {
+                    'duplica': true
+                });
+    
+            }
+            //Il n'existe pas, donc on l'ajoute dans la BD avant de le rediriger
+            else {
+                //Pour hacher le MDP
+                bcrypt.hash(req.body.pass2, saltRounds, (err, hash) => {
+                    //Insertion du nouveau joueur dans la BD
+                    var nouvJoueur = new Joueur({
+                        nom: req.body.nom,
+                        prenom: req.body.prenom,
+                        pseudo: req.body.pseudo,
+                        email: req.body.email,
+                        pass: hash,
+                        scoreActu: 0,
+                        bonnus: {
+                            grosDoigt: 1,
+                            sudo: 0
+                        }
+                    });
+    
+                    //Sauvegarde dans la BD
+                    nouvJoueur.save((err) => {
+                        if (err) {
+                            console.log('\nErreur d\'enregistrement dans la BD ' + err);
+                        }
+                    });
+            
+                    //Stockage session du nouveau joueur et redirection vers /espacejeu
+                    req.session.pseudo = req.body.pseudo;
+    
+                    //Mise à jour de l'objet connectée
+                    connectes[req.body.pseudo] = {
+                        time: new Date(),
+                        statut: null,
+                        scoreActu: 0,
                         grosDoigt: 1,
                         sudo: 0
-                    }
+                    };
+                    res.redirect('/espacejeu');
+                    console.log('\nEnregistrement du new joueur');
                 });
-
-                //Sauvegarde dans la BD
-                nouvJoueur.save((err) => {
-                    if (err) {
-                        console.log('\nErreur d\'enregistrement dans la BD ' + err);
-                    }
-                });
-        
-                //Stockage session du nouveau joueur et redirection vers /espacejeu
-                req.session.pseudo = req.body.pseudo;
-
-                //Mise à jour de l'objet connectée
-                connectes[req.body.pseudo] = {
-                    time: new Date(),
-                    statut: null,
-                    scoreActu: 0,
-                    grosDoigt: 1,
-                    sudo: 0
-                };
-                res.redirect('/espacejeu');
-                console.log('\nEnregistrement du new joueur');
-            });
-        }
-    });
-
+            }
+        });
+    }else{
+        res.redirect('/');
+    }
 });
 
-/**Gestionnaire pour éviter l'erreur: "cannot get /signin"
- */
-app.get('/signin', (req, res) => {
-    res.redirect('/');
-});
 
 /**
  * Gestionnaire pour la reinitialisation du mot de passe
  */
- app.post('/forgetPass', (req, res) => {
-     //Requête preparée permettant de chercher le pseudo saisi dans la BD
-     var query = Joueur.find({
-         nom: req.body.fname,
-         prenom: req.body.lname
-     });
- 
-     //Exécution de la requête
-     query.exec((err, result) => {
-         if (err) {
-             console.log('\n Erreur sur find: ' + err);
-             res.status(500).send(err);
-         }
-         if (result.length >= 1) {
-             //Pour hacher le MDP
-             bcrypt.hash(req.body.confPass, saltRounds, (err, hash) => {
- 
-                 //Insertion du nouveau mot de passe
-                 result[0].pass = hash;
- 
-                 //Sauvegarde dans la BD
-                 result[0].save((err) => {
-                     if (err) {
-                         console.log('\n ReinitialisationMDP-Erreur d\'enregistrement dans la BD ' + err);
-                     }
+ app.all('/forgetPass', (req, res) => {
+         
+    if(req.method=='POST'){
+         //Requête preparée permettant de chercher le pseudo saisi dans la BD
+         var query = Joueur.find({
+             nom: req.body.fname,
+             prenom: req.body.lname
+         });
+     
+         //Exécution de la requête
+         query.exec((err, result) => {
+             if (err) {
+                 console.log('\n Erreur sur find: ' + err);
+                 res.status(500).send(err);
+             }
+             if (result.length >= 1) {
+                 //Pour hacher le MDP
+                 bcrypt.hash(req.body.confPass, saltRounds, (err, hash) => {
+     
+                     //Insertion du nouveau mot de passe
+                     result[0].pass = hash;
+     
+                     //Sauvegarde dans la BD
+                     result[0].save((err) => {
+                         if (err) {
+                             console.log('\n ReinitialisationMDP-Erreur d\'enregistrement dans la BD ' + err);
+                         }
+                     });
+                     res.redirect('/');
                  });
-                 res.redirect('/');
-             });
-         }
-         else {
-             console.log('Nom et prenom non reconnu');
-             res.render('index.twig', {
-                 'errPseudo': true
-             });
-         }
- 
-     });
+             }
+             else {
+                 console.log('Nom et prenom non reconnu');
+                 res.render('index.twig', {
+                     'errPseudo': true
+                 });
+             }
+     
+         });
+    }else{
+        res.redirect('/');
+    }
 });
  
-/**Gestionnaire pour éviter l'erreur: "cannot get /forgetPass"
- */
-app.get('/forgetPass', (req, res) => {
-    res.redirect('/');
-});
 
 /**Gestionnaire pour l'espace jeu
  */
@@ -336,7 +326,7 @@ app.get('/espacejeu', (req, res) => {
         result.sort((a, b) => {
             return b.scoreActu - a.scoreActu;
         });
-        res.render('espaceJeuWS1.twig', {
+        res.render('espaceJeu.twig', {
             'joueur': result,
             'joueur_actu': req.session.pseudo,
             'bonusGD' : connectes[req.session.pseudo].grosDoigt,
@@ -352,7 +342,7 @@ app.get('/espacejeu', (req, res) => {
 /**
  * Gestionnaire pour permettre au joueur de voir son profil
  */
- app.get('/profile', (req, res)=>{
+app.get('/profile', (req, res)=>{
     
     if(req.session.pseudo in connectes){
         res.render('profile.twig', {
@@ -370,6 +360,7 @@ app.get('/espacejeu', (req, res) => {
 /**Gestionnaire pour la deconnexion du joueur
  */
 app.get('/logout', (req, res) => {
+    req.session.pseudo=null;
     res.redirect('/');
 });
 /***********************************************************************/
@@ -409,7 +400,10 @@ wsserver.broadcastEve = (wsConn, data) => {
         }
     });
 };
-/**Le tableau save_destroy contient tous les cubes détruits
+/**La variable dim_cube permet d'initialiser la dimension du cube
+ * @var {Number} dim_cube
+ * 
+ * Le tableau save_destroy contient tous les cubes détruits
  * @var {Array} save_destroy
  * 
  * La variable profondeur correspond à la hauteur(profondeur) du cube construit
@@ -419,7 +413,8 @@ wsserver.broadcastEve = (wsConn, data) => {
  * @var {Number} cube_count
  */
 var save_destroy = [];
-var profondeur = 4; //19
+var dim_cube=5;
+var profondeur=dim_cube-1;
 var cube_count = 0;
 
 // On définit la logique de la partie Web Socket
@@ -432,8 +427,7 @@ wsserver.on('connection', (wsconn) => {
      * La fonction retourne un Objet contenant:
      * @param {String} statut correspondant au statut du joueur (null, jouer, logout, ancJoueur, newJoueur)
      * @param {Object} current_objet correspondant au coordonnée du cube détruit
-     * @param {Object} infoJoueurActu contenant les informations (scorActu, gdActu, sudoActu) sur le joueur actuel
-     * @param {Array} infoAutreJoueurs contenant les informations (pseudo, scoreActu) sur les autres joueurs
+     * @param {Array} infoJoueurs contenant les informations (pseudo, scoreActu, grosDoigt, sudo) sur les joueurs
      * @function
      * @name envoiInfoJoueurs
      * @returns {Object}
@@ -471,6 +465,12 @@ wsserver.on('connection', (wsconn) => {
     //On rentre dans cette condition dès qu'un nouveau joueur se connecte
     if (session.pseudo in connectes && (connectes[session.pseudo].statut == null || connectes[session.pseudo].statut == 'ancJoueur')) {
         
+        //Envoi de la dimension du cube au serveur pour la synchronisation
+        wsconn.send(JSON.stringify({
+            statut: 'syncDimCube',
+            dimCube: dim_cube
+        }));
+        
         //On crée l'objet newJoueur contenant les cubes détruits
         var newJoueur = {
             statut: 'newJoueur',
@@ -497,10 +497,11 @@ wsserver.on('connection', (wsconn) => {
         var DATA = JSON.parse(data);
         var condIf = true;
         switch (DATA.action) {
+            
             case 'jouer':
-                
+                //console.log(profondeur);
                 //On applique l'idée des semaphores en utilisant sem.take()
-                //Pour empêcher que eux joueurs accèdent en même temps au contenu critique du cas 'jouer'
+                //Pour empêcher que deux joueurs accèdent en même temps au contenu critique du cas 'jouer'
                 sem.take(() => {
                     
                     //On fait cette vérification pour empêcher la destruction du cube
@@ -538,7 +539,7 @@ wsserver.on('connection', (wsconn) => {
                             //complètement détruit. Si oui on décremente la profondeur et on
                             //reinitialise cube_count à zero, sinon on ne fait rien.
                             cube_count++;
-                            if (cube_count == 25) { //Taille du cube
+                            if (cube_count == (dim_cube*dim_cube)) { // 25 Taille du cube
                                 profondeur--;
                                 cube_count = 0;
                             }
@@ -550,30 +551,7 @@ wsserver.on('connection', (wsconn) => {
                 
                 //Vérification pour voir si la partie est finie
                 if (profondeur == -1 && cube_count == 0) {
-                    //Pour chercher le gagnant
-                    // var win=[];
-                    // var i=0;
-                    //Rénitialisation de l'objet connectes et initialisation de la table win
-                    for (var pseudo in connectes) {
-                        // win[i]={
-                        //     winner: pseudo,
-                        //     meilleurScore: connectes[pseudo].scoreActu
-                        // };
-                        connectes[pseudo] = {
-                            time: new Date(),
-                            statut: null,
-                            scoreActu: 0,
-                            grosDoigt: 1,
-                            sudo: 0
-                        };
-                        // i++;
-                    }
-                    
-                    //Pour avoir le meilleur score et le nom du gagnant on fait un tri sur win
-                    // win.sort((a, b) => {
-                    //     return b.meilleurScore - a.meilleurScore;
-                    // });
-                    
+                   
                     //On envoi le gagnant à tout les joueurs en ligne
                     wsserver.broadcast({
                         statut: 'WIN',
@@ -586,7 +564,7 @@ wsserver.on('connection', (wsconn) => {
                     //Des variables
                     save_destroy = [];
                     cube_count = 0;
-                    profondeur = 4;
+                    profondeur = dim_cube-1;
                     
                     //De la BD
                     Joueur.find((err, result) => {
@@ -628,7 +606,6 @@ wsserver.on('connection', (wsconn) => {
                     connectes[session.pseudo].statut='ACHATGD';
                     var listeJoueur=envoiInfoJoueurs();
                     wsserver.broadcast(listeJoueur);
-                    console.log('ACHATGD');
                 }else{
                     wsconn.send(JSON.stringify({
                         statut: 'NONACHATGD'
@@ -646,7 +623,6 @@ wsserver.on('connection', (wsconn) => {
                     connectes[session.pseudo].statut='ACHATSUDO';
                     listeJoueur=envoiInfoJoueurs();
                     wsserver.broadcast(listeJoueur);
-                    console.log('ACHATSUDO');
                 }else{
                     wsconn.send(JSON.stringify({
                         statut: 'NONACHATSUDO'
@@ -667,7 +643,7 @@ wsserver.on('connection', (wsconn) => {
                             sudo: connectes[session.pseudo].sudo
                         }
                     }));
-                    console.log('BONNUSGD');
+        
                 }else{
                     wsconn.send(JSON.stringify({
                         statut : 'NONCONFGD'
@@ -688,14 +664,12 @@ wsserver.on('connection', (wsconn) => {
                                 sudo: connectes[session.pseudo].sudo
                             }
                         }));
-                        //connectes[session.pseudo].statut='MODSUDO';
-                        //var listeJoueur=envoiInfoJoueurs();
-                        //wsserver.broadcastEve(wsconn,listeJoueur);
+                        
                         wsserver.broadcastEve(wsconn,{
                             statut : 'MODSUDO',
                             player : session.pseudo
                         });
-                        console.log('BONNUSSUDO');
+                    
                     }else{
                         wsconn.send(JSON.stringify({
                             statut : 'NONCONFSUDO'
@@ -760,18 +734,3 @@ wsserver.on('connection', (wsconn) => {
 
 // On lance le serveur HTTP/Web Socket
 server.listen(process.env.PORT);
-/*if(cluster.isMaster){
-    console.log(`Master ${process.pid}`);
-    //Création des Workers
-    for(var i=0; i<numCPUs;i++){
-        cluster.fork();
-    }
-    
-    cluster.on('exit',(worker, code, signal) => {
-        console.log(`worker ${worker.process.pid} died`+'avec code: '+code);
-    });
-}else{
-    //Workers partageant le serveur HTTP/Web Socket
-    server.listen(process.env.PORT);
-    console.log(`Worker ${process.pid} started`);
-}*/

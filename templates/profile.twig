@@ -1,35 +1,44 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf-8">
-        <title>{{session}}, ton profile!</title>
-        <link rel="stylesheet" type="text/css" href="/static/css/profile.css">
-        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    </head>
-    <body>
-<h1 class="title-pen"> <span>Curiosity Gamer</span></h1>
-<div class="user-profile">
-	<img class="avatar" src="/static/css/image/avatar.jpg" alt="Votre profile" />
-    <div class="username">{{session|capitalize}}</div>
-  <div class="bio">
-  	Joueur Professionnel
-  </div>
-    <div class="description">
-     Show us what you can do and discover what is inside the cube!
-  </div>
-  <ul class="data">
-    <li>
-      <span class="entypo-heart"><i class="fa fa-star fa fa3x" aria-hidden="true"></i>{{points}}</span>
-    </li>
-    <li>
-         <span class='entypo-heart'><i class="fa fa-hand-rock-o fa-2x" aria-hidden="true"></i> {{gd}}</span>
-    </li>
-    <li>
-         <span class='entypo-heart'><i class="fa fa-user-times fa-2x" aria-hidden="true"></i>{{sudo}}</span>
-    </li>
- </ul>
-</div>
-{#<button >#}<a class='button' href='/espacejeu'>
-<i class="fa fa-angle-double-left fa fa3x" style='color:black;' aria-hidden="true"></i>  Retour</a>{#</button>#}
+<head>
+    <meta charset="UTF-8">
+    <title>{{session}}, ton profile!</title>
+    <link rel="stylesheet" type="text/css" href="/static/css/profile.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+</head>
+
+<body>
+    <h1 class="title-pen"> <span>Curiosity Gamer</span></h1>
+    <div class="user-profile">
+        <img class="avatar" src="/static/css/image/avatar.jpg" alt="Votre profile" />
+        <div class="username">{{session|capitalize}}</div>
+        <div class="bio">
+            Joueur Professionnel
+        </div>
+        <div class="description">
+            Show us what you can do and discover what is inside the cube!
+        </div>
+        <ul class="data">
+            <li>
+                <span class="entypo-heart"><i class="fa fa-star fa fa3x" aria-hidden="true"></i>{{points}}</span>
+            </li>
+            <li>
+                <span class='entypo-heart'><i class="fa fa-hand-rock-o fa-2x" aria-hidden="true"></i> {{gd}}</span>
+            </li>
+            <li>
+                <span class='entypo-heart'><i class="fa fa-user-times fa-2x" aria-hidden="true"></i>{{sudo}}</span>
+            </li>
+        </ul>
+    </div>
+    <a class='button' onclick='Close()'>
+<i class="fa fa-angle-double-left fa fa3x" style='color:black;' aria-hidden="true"></i>  Retour</a>
+<script>
+    function Close(){
+        window.close();
+    }
+</script>
 </body>
+
 </html>

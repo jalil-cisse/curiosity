@@ -101,9 +101,10 @@ $('.tab a').on('click', function (e) {
   
 }); 
 
+
+/*pour le petit capcha*/
 var operande1 = Math.trunc(Math.random()*10);
 var operande2 = Math.trunc(Math.random()*10);
-console.log('val 1 : '+ operande1 + ' ' +operande2);
 var operande1Dom = document.createTextNode(operande1.toString());
 var operande2Dom = document.createTextNode(operande2.toString());
 var dom1 = document.querySelector('#operande1');
@@ -111,7 +112,6 @@ var dom2 = document.querySelector('#operande2');
 dom1.appendChild(operande1Dom);
 dom2.appendChild(operande2Dom);
 var resultat = document.querySelector('#result');
-console.log(resultat.value);
 var submitButton = document.querySelector('#submitButton');
 
 submitButton.addEventListener('click', (evt)=>{

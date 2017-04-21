@@ -26,8 +26,98 @@
     
     <section>
         <article>
-            <pre class="prettyprint source linenums"><code>/*****Selection et Utilisation des éléments du DOM******/
+            <pre class="prettyprint source linenums"><code>/******Variables globales*******/
+/**
+ * Variable globale contenant les ID des cubes non supprimés.
+ * @var {number[]} tabID
+ */
+var tabId = [];
+
+/**
+ * Contient true si bonnus et false sinon.
+ * @var {bool} bonGD
+ */
+var bonGD = false;
+
+//Initialiser à zero pour pouvoir detruire plusieurs cubes en même temps
+var nbClic = 0;
+
+//Pour initialiser la dimension du cube par le serveur
+var cubeDim;
+
+targetRotation = 0;
+/**
+ * Contient la profondeur courante des cubes qu'on peut supprimer.
+ * @var {number} profondeurGeneral
+ */
+var profondeurGeneral=4;
+
+/**
+ * On stock le pseudo du joueur dans ce variable
+ * @var {String} pseudo
+ */
+var pseudo;
+
+/**
+@var ws {instanceWebsocket} Instance du websocket.
+*/
+var ws = new WebSocket('wss://' + window.location.host);
+
+/*****Selection et Utilisation des éléments du DOM******/
 var body = document.querySelector("#bodydiv");
+
+var div = document.querySelector('#result table');
+
+var containerCube = document.querySelector('#cubeRightPanel');
+
+//Au chargement de la page on crée l'interface jeu
+// body.onload = creerCube(document.querySelector("#canvaContainer"), cubeDim, paper);
+
+//On attache l'évènement clic pour l'utilisation du bonnusGD
+var butBonusGrosDoigt = document.querySelectorAll('.buttBonus')[0];
+butBonusGrosDoigt.addEventListener('click', (evt) => {
+    ws.send(JSON.stringify({
+        action: 'bonusGD'
+    }));
+});
+
+//On attache l'évènement clic pour l'utilisation du bonnusSUDO
+var butBonusSudo = document.querySelectorAll('.buttBonus')[1];
+butBonusSudo.addEventListener('click', (evt) => {
+    ws.send(JSON.stringify({
+        action: 'bonusSUDO'
+    }));
+});
+
+//On attache l'évènement clic pour l'achat du bonnusGD
+var achatBonusGrosDoigt = document.querySelector('#achatGD');
+achatBonusGrosDoigt.addEventListener('click', (evt) => {
+    ws.send(JSON.stringify({
+        action: 'achatBonusGD'
+    }));
+});
+
+//On attache l'évènement clic pour l'achat du bonnusSUDO
+var achatBonusSudo = document.querySelector('#achatSUDO');
+achatBonusSudo.addEventListener('click', (evt) => {
+    ws.send(JSON.stringify({
+        action: 'achatBonusSUDO'
+    }));
+});
+
+//On attache l'évènement clic pour l'arrêt du son
+var sonArrierePlan = document.querySelector("#sonArrierePlan");
+var butMute = document.querySelector('#mute');
+butMute.addEventListener('click', () => {
+    sonArrierePlan.pause();
+});
+
+//On attache l'évènement clic pour joueur le son
+var reactSon = document.querySelector('#son');
+reactSon.addEventListener('click', () => {
+    sonArrierePlan.play();
+})
+
 
 /**
  * Ici initialisation de Raphael et creation d'un canvas.
@@ -38,58 +128,28 @@ var body = document.querySelector("#bodydiv");
  */
 var paper = Raphael(canvaContainer, 163, 163); //canvas associé  
 
-/**
- * Variable globale contenant les ID des cubes non supprimés.
- * @var {number[]} tabID
- */
-var tabId = [];
-
-/**
- * Contient true si bonus et false sinon.
- * @var {bool} bonGD
- */
-var bonGD = false;
-var nbClic = 0;
-
-targetRotation = 0;
-/**
- * Contient la profondeur courante des cubes qu'on peut supprimer.
- * @var {number} profondeurGeneral
- */
-var profondeurGeneral = 4;
-
-var pseudo;
-
-var div = document.querySelector('#result table');
-
-/** Fonction permettant de créer un nouveau noeud
- * @param {element} parent element parent.
- * @param {element} balise element a accrocher au parent.
- */
-function ajoute(parent, balise) {
-    return parent.appendChild(document.createElement(balise));
-}
-
-/**
-@var ws {instanceWebsocket} Instance du websocket.
-*/
-var ws = new WebSocket('wss://' + window.location.host);
 
 //handler associé à l'ouverture du websocket avec le serveur  
 ws.addEventListener('open', function(e) {
+    
     ws.addEventListener('message', function(e) {
         /**
-         * @param data {Object} message recu du serveur
+         * @param data {Object} message reçu du serveur
          */
         var data = JSON.parse(e.data);
-
+        
         //console.log(data);
         switch (data.statut) {
+            case 'syncDimCube':
+                cubeDim=data.dimCube;
+                //Au chargement de la page on crée l'interface jeu
+                body.onload = creerCube(document.querySelector("#canvaContainer"), cubeDim, paper);
+            break;
+            
             case 'newJoueur':
                 pseudo = data.pseudo;
                 if (data.destroyedSave) {
                     for (var i = 0; i &lt; data.destroyedSave.length; i++) {
-                        console.log('DANS FOR:' + data.destroyedSave[i]);
                         tabId.splice(indice(data.destroyedSave[i]), 1);
                         dropeById(data.destroyedSave[i], paper);
                     }
@@ -99,7 +159,6 @@ ws.addEventListener('open', function(e) {
 
             case 'ENLIGNE':
                 majAllPlayer(data);
-                console.log('ENLIGNE-ChargePage');
                 break;
 
             case 'LOGOUT':
@@ -108,16 +167,12 @@ ws.addEventListener('open', function(e) {
 
             case 'JOUER':
 
-                console.log(bonGD);
-
                 //changement du cube courant
                 profondeurGeneral = data.current_objet.profondeurObj;
-                console.log("ProfondeurGeneral" + profondeurGeneral);
                 tabId.splice(indice(data.current_objet), 1);
                 dropeById(data.current_objet, paper);
                 majAllPlayer(data);
 
-                //console.log('longueur tableau' +tabId.length);
                 if (bonGD &amp;&amp; nbClic > 0) {
 
                     var i = tabId.length - 1;
@@ -136,7 +191,7 @@ ws.addEventListener('open', function(e) {
                 break;
 
             case 'WIN':
-                //alert('Message: '+data.winner+' '+data.score);
+                //Pour l'affichage d'un popup lorsqu'il y'a un gagnant
                 $(function() {
                     $('#bodyPopup').toggleClass('overlay');
                     $('#bodyPopup').css('display', 'table');
@@ -172,11 +227,10 @@ ws.addEventListener('open', function(e) {
                 bonGD = true;
                 nbClic = 3;
                 majCurentPlayer(data);
-                //console.log('BONNUS: '+bonGD+' '+nbClic+' Clic');
                 break;
 
             case 'NONCONFGD':
-                alert("Vous n'avez pas assez de points (30) pour utiliser ce Bonnus");
+                alert("Vous n'avez pas n'avez pas de bonnus GD");
                 break;
 
             case 'CONFSUDO':
@@ -186,11 +240,10 @@ ws.addEventListener('open', function(e) {
                     blocClic: false
                 });
                 majCurentPlayer(data);
-                console.log('CONFSUDO');
                 break;
 
             case 'NONCONFSUDO':
-                alert("Vous n'avez pas assez de points (60) pour utiliser ce Bonnus");
+                alert("Vous n'avez pas de bonnus SUDO");
                 break;
 
             case 'MODSUDO':
@@ -200,13 +253,21 @@ ws.addEventListener('open', function(e) {
                     blocClic: true
                 });
                 majAllPlayer(data);
-                console.log('CONFSUDO');
                 break;
 
             default:
+                alert('Erreur lors de l\'interpretation du message');
         }
     });
 });
+
+/** Fonction permettant de créer un nouveau noeud
+ * @param {element} parent element parent.
+ * @param {element} balise element a accrocher au parent.
+ */
+function ajoute(parent, balise) {
+    return parent.appendChild(document.createElement(balise));
+}
 
 /** Fonction permettant de rechercher un indice dans un tableau connaissant sa valeur
  *@param {Object} objet element parent.
@@ -229,31 +290,8 @@ function majAllPlayer(data) {
         return b.scoreActu - a.scoreActu;
     });
 
-    /*var domAjoutScoreCourant;
-    domAjoutScoreCourant = document.createElement('span');
-    var ouAjoute = document.querySelector('#core');
-    var texte = document.createTextNode(data.infoJoueurActu.scorActu);
-    ouAjoute.innerHTML = '';
-    domAjoutScoreCourant.appendChild(texte);
-    ouAjoute.appendChild(domAjoutScoreCourant);
-
-    //Insertion Bonnus Gros doigt
-    var bonnusGD = document.querySelector('#bonusGD');
-    bonnusGD.innerHTML = '';
-    var b1 = document.createTextNode(data.infoJoueurActu.gdActu);
-    bonnusGD.appendChild(b1);
-
-    //Insertion Bonnus Gros Sudo
-    var bonnusSu = document.querySelector('#bonusSudo');
-    bonnusSu.innerHTML = '';
-    var b2 = document.createTextNode(data.infoJoueurActu.sudoActu);
-    bonnusSu.appendChild(b2);*/
-
     /* Update du tableau*/
     div.innerHTML = '';
-    // function ajoute(parent,balise){
-    //     return parent.appendChild(document.createElement(balise));
-    // }
     var tr = ajoute(div, 'tr');
 
     //Th Joueurs
@@ -325,7 +363,7 @@ function majCurentPlayer(data) {
 }
 
 /** Fonction pour la deconnexion envoie un message de deconnexion exit au serveur
- *@constructor
+ *@function exit
  */
 function exit() {
     var msg = {
@@ -334,8 +372,6 @@ function exit() {
     ws.send(JSON.stringify(msg));
 }
 
-
-body.onload = creerCube(document.querySelector("#canvaContainer"), 5, paper);
 
 /** Fonction permettant de créer l'espace Jeu
  * @function creerCube
@@ -363,8 +399,6 @@ function creerCube(Element, dimCube, paper1) {
     }
     //fin grille trois dimensions
 
-
-
     var identifiant = 0;
     //creation des objets rectangle RaphaelJs 
     for (var k = 0; k &lt; globArreteDim; k++) {
@@ -374,7 +408,6 @@ function creerCube(Element, dimCube, paper1) {
                     .attr({
                         fill: 'rgb(' + k * 25 + ',' + k * 50 + ',' + k * 90 + ')'
                     });
-                //console.log(identifiant);
                 rectangle[k][i][j].id = identifiant;
                 rectangle[k][i][j].node.id = identifiant;
                 rectangle[k][i][j].node.profondeur = k;
@@ -391,8 +424,6 @@ function creerCube(Element, dimCube, paper1) {
                 //transmission de l'objet courant cliqué a l'objet coordonnes
                 rectangle[k][i][j].node.onclick = function(evt) {
                     var coordonnes = {
-                        x: evt.target.x.baseVal.value,
-                        y: evt.target.y.baseVal.value,
                         id: evt.target.id,
                         profondeurObj: evt.target.profondeur
                     };
@@ -403,7 +434,6 @@ function creerCube(Element, dimCube, paper1) {
                         currentDestroyed: coordonnes
                     };
                     ws.send(JSON.stringify(msg));
-                    console.log('COORD: ' + coordonnes.id);
                 };
             }
         }
@@ -421,32 +451,32 @@ function dropeById(coordo, paper1) {
     aSupprimer.remove();
 }
 
-var butBonusGrosDoigt = document.querySelectorAll('.buttBonus')[0];
-butBonusGrosDoigt.addEventListener('click', (evt) => {
-    ws.send(JSON.stringify({
-        action: 'bonusGD'
-    }));
+
+/**
+ * Affichage du popup pour faire l'achat de bonnus avec Jquery
+ */
+//Affiche un popup pour faire des achats
+$('#achatBonus').click(function(e) {
+    $('.popup-wrap').fadeIn(250);
+    $('.popup-box').removeClass('transform-out').addClass('transform-in');
+
+    e.preventDefault();
 });
 
-var butBonusSudo = document.querySelectorAll('.buttBonus')[1];
-butBonusSudo.addEventListener('click', (evt) => {
-    ws.send(JSON.stringify({
-        action: 'bonusSUDO'
-    }));
+//Pour fermer le popup
+$('.popup-close').click(function(e) {
+    $('.popup-wrap').fadeOut(500);
+    $('.popup-box').removeClass('transform-in').addClass('transform-out');
+
+    e.preventDefault();
 });
 
-var achatBonusGrosDoigt = document.querySelector('#achatGD');
-achatBonusGrosDoigt.addEventListener('click', (evt) => {
-    ws.send(JSON.stringify({
-        action: 'achatBonusGD'
-    }));
-});
+//Pour fermer le popup quand le joueur achète un bonnus
+$('a.signup').click(function(e) {
+    $('.popup-wrap').fadeOut(500);
+    $('.popup-box').removeClass('transform-in').addClass('transform-out');
 
-var achatBonusSudo = document.querySelector('#achatSUDO');
-achatBonusSudo.addEventListener('click', (evt) => {
-    ws.send(JSON.stringify({
-        action: 'achatBonusSUDO'
-    }));
+    e.preventDefault();
 });
 
 /**
@@ -499,22 +529,15 @@ var Loader = function() {
 }();
 
 
-var sonArrierePlan = document.querySelector("#sonArrierePlan");
-var butMute = document.querySelector('#mute');
-butMute.addEventListener('click', () => {
-    sonArrierePlan.pause();
-});
-
-var reactSon = document.querySelector('#son');
-reactSon.addEventListener('click', () => {
-    sonArrierePlan.play();
-})
-
-var containerCube = document.querySelector('#cubeRightPanel');
+// var containerCube = document.querySelector('#cubeRightPanel');
+/**Cette partie concerne le début d'intégration du THREE js dans
+ * notre projet, car on n'a pas totalement fini de faire la liaison
+ * avec le cube qu'on a crée avec CANVAS
+ */
 var profondeurSaved = 4;
 
 
-/***here**/
+/***here***/
 var container, stats;
 
 var camera, scene, renderer;
@@ -558,7 +581,7 @@ function init() {
     plane = new THREE.Mesh(geometry, material);
     scene.add(plane);
     renderer = new THREE.CanvasRenderer();
-    //renderer.setClearColor(0x0);
+
     renderer.setPixelRatio(canvaContainer.devicePixelRatio);
     renderer.setSize(containerCube.offsetWidth, containerCube.offsetHeight);
     container.appendChild(renderer.domElement);
@@ -575,7 +598,7 @@ function animate() {
 }
 
 function render() {
-    // console.log('targetRotation' + targetRotation);
+    
     if (profondeurGeneral != profondeurSaved) {
         targetRotation = 1;
         window.setTimeout(function() {
@@ -587,31 +610,7 @@ function render() {
     plane.rotation.y = cube.rotation.y += targetRotation * 0.13244;
     renderer.render(scene, camera);
 }
-/**to here***/
-
-//Affiche un popup pour faire des achats
-$('#achatBonus').click(function(e) {
-    $('.popup-wrap').fadeIn(250);
-    $('.popup-box').removeClass('transform-out').addClass('transform-in');
-
-    e.preventDefault();
-});
-
-//Pour fermer le popup
-$('.popup-close').click(function(e) {
-    $('.popup-wrap').fadeOut(500);
-    $('.popup-box').removeClass('transform-in').addClass('transform-out');
-
-    e.preventDefault();
-});
-
-//Pour fermer le popup quand le joueur achète un bonnus
-$('a.signup').click(function(e) {
-    $('.popup-wrap').fadeOut(500);
-    $('.popup-box').removeClass('transform-in').addClass('transform-out');
-
-    e.preventDefault();
-});
+/**End here***/
 </code></pre>
         </article>
     </section>
@@ -622,13 +621,13 @@ $('a.signup').click(function(e) {
 </div>
 
 <nav>
-    <h2><a href="index.html">Home</a></h2><h3>Classes</h3><ul><li><a href="exit.html">exit</a></li></ul><h3>Global</h3><ul><li><a href="global.html#ajoute">ajoute</a></li><li><a href="global.html#bonGD">bonGD</a></li><li><a href="global.html#creerCube">creerCube</a></li><li><a href="global.html#dropeById">dropeById</a></li><li><a href="global.html#indice">indice</a></li><li><a href="global.html#Loader">Loader</a></li><li><a href="global.html#majAllPlayer">majAllPlayer</a></li><li><a href="global.html#majCurentPlayer">majCurentPlayer</a></li><li><a href="global.html#paper">paper</a></li><li><a href="global.html#profondeurGeneral">profondeurGeneral</a></li><li><a href="global.html#tabID">tabID</a></li><li><a href="global.html#ws">ws</a></li></ul>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#ajoute">ajoute</a></li><li><a href="global.html#bonGD">bonGD</a></li><li><a href="global.html#creerCube">creerCube</a></li><li><a href="global.html#dropeById">dropeById</a></li><li><a href="global.html#exit">exit</a></li><li><a href="global.html#indice">indice</a></li><li><a href="global.html#Loader">Loader</a></li><li><a href="global.html#majAllPlayer">majAllPlayer</a></li><li><a href="global.html#majCurentPlayer">majCurentPlayer</a></li><li><a href="global.html#paper">paper</a></li><li><a href="global.html#profondeurGeneral">profondeurGeneral</a></li><li><a href="global.html#profondeurSaved">profondeurSaved</a></li><li><a href="global.html#pseudo">pseudo</a></li><li><a href="global.html#tabID">tabID</a></li><li><a href="global.html#ws">ws</a></li></ul>
 </nav>
 
 <br class="clear">
 
 <footer>
-    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Thu Apr 13 2017 22:31:51 GMT+0000 (UTC)
+    Documentation generated by <a href="https://github.com/jsdoc3/jsdoc">JSDoc 3.4.3</a> on Fri Apr 14 2017 21:09:17 GMT+0000 (UTC)
 </footer>
 
 <script> prettyPrint(); </script>
