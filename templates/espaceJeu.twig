@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script type="text/javascript" src="/static/lib/raphael.js"></script>
+    <script type="text/javascript" src="/static/js/jquery.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/css/jeu.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300" >
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Press+Start+2P" >
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Gloria+Hallelujah">
+    <title>Espace Jeu Curiosité</title>
+  </head>
+  
+  <body id="bodydiv">
+      <!-- popup -->
+        <div id="bodyPopup">
+            <div class="popScroll">
+                <div class="popup">
+                    <span class="ribbon top-left ribbon-primary">
+                        <small>Bravo!</small>
+                    </span> 
+                    <h1>Curiosity Winner</h1>
+                    <p id="win"></p>
+                    <div id="option">
+                        <a href="/espacejeu" id="home" class="boxi">Rejouer</a> 
+                        <em>ou</em>
+                        <a href="/" onclick='exit()' id="close" class="boxi closei">Fermer</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+      <!--Fin popup-->
+      
+     
+        
+        <div class="page">
+            <header class="site-header">
+                <div class='JoeurConnecte'>
+                    <h2 id="infosJoueur"> {{ joueur_actu |capitalize }}, le curieux! </h2>
+                    <nav id="menu">
+                        <a href='/profile' target="_blank" title="Modifier mon profil">Mon profil</a>
+                        <a href="#" title="Les dernières nouvelles">Nouveautés</a>
+                        <a href="#" id="achatBonus" title="Acheter des bonus">Boutiques</a>
+                        <a href="/logout" onclick='exit()' title="Se deconnecter">Deconnexion</a>
+                    </nav>
+                </div>
+             </header>
+             
+       <div id='espacement'></div>
+       
+       <aside class="left-sidebar">
+          <div id="result">
+                <h1>En ligne</h1>
+                <table class="container">
+                    <tr>
+                        <th>Joueurs</th>
+                        <th>Score</th>
+                    </tr>
+                        {% for c in joueur%}
+                        <tr>
+                            <td>{{ c['pseudo'] }}</td>
+                            <td>
+                                {{ c['scoreActu'] }}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+          
+              <button id='mute'>Mute<span class='notification'><i class="fa fa-volume-off" aria-hidden="true"></i></span></button>
+        	<button id='son'>UnMute<span class='notification'><i class="fa fa-volume-up" aria-hidden="true"></i></span></button>
+        </aside>
+      
+      
+        <section class="main-content">
+          
+          <div id="ligne"> <span id="text"></span> <span id="core">{{ scoreJoueur }}</span></div>
+          <span id="canvaContainer"></span> 
+          
+           <div id="timer">
+                <div style="display:none" class="loader-container">
+                    <div class="meter"></div>
+                    <span class="runner"></span>
+                </div>
+            </div>
+          
+              <div id='bonus'>
+                  <button class='buttBonus'>
+                      <span id="bonusGD" class="notification">{{bonusGD}}</span>
+                      <i class="fa fa-hand-rock-o fa-3x" aria-hidden="true"></i>
+                          
+                  </button>
+                  <button class='buttBonus'>
+                      <span id="bonusSudo" class="notification">{{bonusSUDO}}</span>
+                      <i class="fa fa-user-times fa-3x" aria-hidden="true"></i>
+                          
+                  </button>
+              </div>
+      
+         
+        </section>
+      
+        <aside class="right-sidebar">
+            <div id="cubeRightPanel"></div>
+            <div class="box2">
+              <ul class="defile">
+                <li class="item-1">Curiosity</li>
+                <li class="item-2">Come</li>
+                <li class="item-3">Play</li>
+                <li class="item-4">Have Fun</li>
+                <li class="item-5">Discover</li>
+                <li class="item-6">Share</li>
+              </ul>  
+            </div>
+        </aside>
+    
+        <!---debut boutique---->
+        <div class="popup-wrap">
+            <div class="popup-box">
+                <h2>Bienvenue dans la boutique</h2>
+                <div id="pricing-table" class="clear">
+                    <div class="plan">
+                        <h3>Gros Doigt<span>3Opts</span></h3>
+                        <a class="signup" href="#"><span id="achatGD">Payer</span></a>         
+                        <ul>
+                             <li><b>Destruction de plusieurs cubes à chaque clique durant 10s</b></li>
+                        </ul> 
+                    </div>
+                    <div class="plan" id="most-popular">
+                        <h3>Sudo<span>60pts</span></h3>
+                        <a class="signup" href="#"><span id="achatSUDO">Payer</span></a>        
+                        <ul>
+                            <li><b>Stop les autres joueurs durant 30s</b></li>
+                   		</ul>    
+                    </div>
+                    <div class="plan">
+                        <h3>King<span>0.99&euro;</span></h3>
+                		<a class="signup" href="#">Payer</a>
+                        <ul>
+                         	<li><b>Réinitialiser les points d'un concurant à zero</b></li>			
+                        </ul>
+                    </div>
+                    <a class="close-btn popup-close" href="#">X</a>
+                 </div>
+          </div>
+        </div>
+        <!--fin boutique-->
+    
+        <div id='espacement'></div>
+    
+        <footer class="site-footer">
+             <span id="copyright">&copy;Copyright by <a href="www.github.com/jalil">LildJa</a> 	&amp; <a href="wwww.github.com/aubain">Aubhino</a>
+             <br/>AWS-UVSQ 2017</span> 
+        </footer>
+        <audio id='sonArrierePlan' src="/static/sound/bgSound.mp3" loop autoplay></audio>
+         
+         <script type="text/javascript" src="https://threejs.org/build/three.min.js"></script>
+         <script  type="text/javascript" src="/static/lib/Projector.js"></script>
+         <script type="text/javascript" src="/static/lib/stats.min.js"></script>
+         <script type="text/javascript" src="/static/lib/CanvasRender.js"></script>
+         <script type="text/javascript" src="/static/js/interfaceJeu.js"></script>
+    </body>
+</html>
